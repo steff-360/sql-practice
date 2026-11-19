@@ -1,0 +1,42 @@
+name: Daily Commit
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate daily content
+        run: python3 .github/scripts/daily_generate.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "steff-360"
+          git config user.email "steff.18random@gmail.com"
+          git add .
+          if git diff --staged --quiet; then
+            echo "Nothing new today, skipping."
+          else
+            git commit -m "feat: daily practice - $(date +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Phone notification
+        if: success()
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          REPO="${{ github.repository }}"
+          curl -s \
+            -H "Title: GitHub - Commit Diario" \
+            -H "Tags: white_check_mark" \
+            -d "Nuevo commit subido en ${REPO} - ${DATE}" \
+            "https://ntfy.sh/steff360-daily-dev" || true
