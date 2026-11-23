@@ -1,7 +1,7 @@
 name: Daily Commit
 on:
   schedule:
-    - cron: '0 14 * * *'
+    - cron: '55 13 * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,24 +19,31 @@ jobs:
         run: python3 .github/scripts/daily_generate.py
 
       - name: Commit and push
+        id: git_commit
         run: |
           git config user.name "steff-360"
           git config user.email "steff.18random@gmail.com"
           git add .
           if git diff --staged --quiet; then
-            echo "Nothing new today, skipping."
+            echo "committed=false" >> $GITHUB_OUTPUT
+            echo "No hay cambios nuevos hoy."
           else
             git commit -m "feat: daily practice - $(date +%Y-%m-%d)"
             git push
+            echo "committed=true" >> $GITHUB_OUTPUT
+            echo "Commit realizado exitosamente."
           fi
 
       - name: Phone notification
-        if: success()
+        if: success() && steps.git_commit.outputs.committed == 'true'
         run: |
           DATE=$(date +%Y-%m-%d)
-          REPO="${{ github.repository }}"
-          curl -s \
-            -H "Title: GitHub - Commit Diario" \
-            -H "Tags: white_check_mark" \
-            -d "Nuevo commit subido en ${REPO} - ${DATE}" \
-            "https://ntfy.sh/steff360-daily-dev" || true
+          REPO="$GITHUB_REPOSITORY"
+          REPO_NAME="sql-practice"
+          curl --retry 3 --retry-delay 2 -s \
+            -H "Title: ✅ Commit subido: $REPO_NAME" \
+            -H "Priority: urgent" \
+            -H "Tags: white_check_mark,octocat" \
+            -H "Click: https://github.com/$REPO" \
+            -d "Se subio exitosamente el commit diario para $REPO_NAME ($DATE)" \
+            "https://ntfy.sh/steff360-daily-dev"
