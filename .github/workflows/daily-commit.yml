@@ -7,6 +7,9 @@ on:
 permissions:
   contents: write
 
+env:
+  TZ: 'America/Bogota'
+
 jobs:
   commit:
     runs-on: ubuntu-latest
@@ -28,16 +31,17 @@ jobs:
             echo "committed=false" >> $GITHUB_OUTPUT
             echo "No hay cambios nuevos hoy."
           else
-            git commit -m "feat: daily practice - $(date +%Y-%m-%d)"
+            DATE=$(TZ='America/Bogota' date +%Y-%m-%d)
+            git commit -m "feat: daily practice - $DATE"
             git push
             echo "committed=true" >> $GITHUB_OUTPUT
-            echo "Commit realizado exitosamente."
+            echo "Commit realizado exitosamente para $DATE."
           fi
 
       - name: Phone notification
         if: success() && steps.git_commit.outputs.committed == 'true'
         run: |
-          DATE=$(date +%Y-%m-%d)
+          DATE=$(TZ='America/Bogota' date +%Y-%m-%d)
           REPO="$GITHUB_REPOSITORY"
           REPO_NAME="sql-practice"
           curl --retry 3 --retry-delay 2 -s \
