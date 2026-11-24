@@ -1,8 +1,10 @@
 import datetime, os, sys
 
-today = datetime.date.today()
+colombia_tz = datetime.timezone(datetime.timedelta(hours=-5))
+now_col = datetime.datetime.now(colombia_tz)
+today = now_col.date()
 date_str = today.isoformat()
-idx = (today.timetuple().tm_yday - 1) % 15
+idx = (now_col.timetuple().tm_yday - 1) % 15
 
 challenges = [
     ("schemas", "productos.sql", """\
@@ -499,10 +501,12 @@ EXECUTE FUNCTION fn_validar_precio();
 
 folder, name, content = challenges[idx]
 os.makedirs(folder, exist_ok=True)
-target = os.path.join(folder, f"{date_str}-{name}")
-if os.path.exists(target):
-    print(f"Skip: {target}")
-    sys.exit(0)
+base_target = os.path.join(folder, f"{date_str}-{name}")
+target = base_target
+v = 2
+while os.path.exists(target):
+    target = os.path.join(folder, f"{date_str}-v{v}-{name}")
+    v += 1
 with open(target, "w") as f:
     f.write(content)
 print(f"Created: {target}")
