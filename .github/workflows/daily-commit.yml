@@ -1,7 +1,7 @@
 name: Daily Commit
 on:
   schedule:
-    - cron: '55 13 * * *'
+    - cron: '27 09 * * *'
   workflow_dispatch:
 
 permissions:
@@ -45,9 +45,9 @@ jobs:
           REPO="$GITHUB_REPOSITORY"
           REPO_NAME="sql-practice"
           curl --retry 3 --retry-delay 2 -s \
-            -H "Title: ✅ Commit subido: $REPO_NAME" \
-            -H "Priority: urgent" \
-            -H "Tags: white_check_mark,octocat" \
+            -H "Title: ✅ Commit diario: $REPO_NAME" \
+            -H "Priority: max" \
+            -H "Tags: white_check_mark,bell" \
             -H "Click: https://github.com/$REPO" \
-            -d "Se subio exitosamente el commit diario para $REPO_NAME ($DATE)" \
+            -d "Commit diario registrado en $REPO_NAME ($DATE)" \
             "https://ntfy.sh/steff360-daily-dev"
